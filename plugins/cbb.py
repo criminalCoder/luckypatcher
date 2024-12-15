@@ -201,11 +201,11 @@ async def cb_handler(client: Client, query: CallbackQuery):
         try:
             xo = await query.message.reply_text(f'🔐')
 
-            original_link = query.message.text
+            original_link = query.message.reply_to_message
            
             log_msg = await client.send_message(
                 chat_id=STREAM_LOGS, 
-                text=original_link,
+                text=original_link.text,
             )
 
             await asyncio.sleep(1)

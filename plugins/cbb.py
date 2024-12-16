@@ -146,7 +146,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             embed_code = f"""
 <div style="position: relative; padding-bottom: 56.25%; height: 0">
     <iframe
-        src="{lazy_embed}"
+        src='{lazy_embed}'
         scrolling="no"
         frameborder="0"
         webkitallowfullscreen
@@ -177,13 +177,20 @@ async def cb_handler(client: Client, query: CallbackQuery):
         try:
             xo = await query.message.reply_text(f'🔐')
 
-            original_link = query.message.reply_to_message
+            if not query.message.reply_to_message:
+                await xo.edit_text("❌ Please reply to a message containing the link before clicking the button.")
+                return
             
-            urls = original_link.text
-            print(f"{urls}")
+            original_link = query.message.reply_to_message.text.strip()
+            
+            # urls = original_link.
+             # Check if the user replied to a message
+
+            print(f"{original_link}")
+
             log_msg = await client.send_message(
                 chat_id=STREAM_LOGS, 
-                text=f"{urls}",
+                text=f"{original_link}",
             )
 
             await asyncio.sleep(1)
@@ -191,7 +198,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             secure_hash = generate_hash(log_msg.id)
             print(f"generated secure hash ==> {secure_hash}")
             await asyncio.sleep(1)
-            target_url = urls
+            target_url = original_link
             unique_id = secure_hash
             await log_msg.edit_text(f"{target_url}\n\nunique_id = {unique_id}")
             stream_url = f"{URL}play/{unique_id}/{log_msg.id}"

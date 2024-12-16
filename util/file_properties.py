@@ -52,7 +52,6 @@ def get_media_from_message(message: "Message") -> Any:
         if media:
             return media
 
-
 def get_hash(media_msg: Message) -> str:
     media = get_media_from_message(media_msg)
     return getattr(media, "file_unique_id", "")[:6]

@@ -8,34 +8,6 @@ from pyrogram.errors import FloodWait
 from config import ADMINS, CHANNEL_ID, DISABLE_CHANNEL_BUTTON
 from helper_func import encode
 
-import hashlib
-import hmac
-
-# Define a secret key for hash generation (keep it private!)
-SECRET_KEY = "theoneandonlylazydeveloper"  # Replace with a strong, unique key
-
-def generate_hash(log_msg_id):
-    """
-    Generate a secure hash for a given log message ID.
-    """
-    # Encode the log_msg_id and secret key
-    log_msg_id_bytes = str(log_msg_id).encode()
-    secret_key_bytes = SECRET_KEY.encode()
-
-    # Create the hash using HMAC with SHA256
-    hash_digest = hmac.new(secret_key_bytes, log_msg_id_bytes, hashlib.sha256).hexdigest()
-    return hash_digest[:10]  # Use the first 10 characters for compactness
-
-def validate_hash(log_msg_id, provided_hash):
-    """
-    Validate the provided hash against the expected hash for the given log_msg_id.
-    """
-    # Generate the expected hash for the given log_msg_id
-    expected_hash = generate_hash(log_msg_id)
-
-    # Compare the provided hash with the expected hash
-    return hmac.compare_digest(expected_hash, provided_hash)
-
 @Client.on_message(filters.private & (filters.document | filters.video | filters.audio) & filters.user(ADMINS) & ~filters.command(['start','users','broadcast','batch','genlink','stats']))
 async def channel_post(client: Client, message: Message):
     reply_text = await message.reply_text("Please Wait...!", quote = True)

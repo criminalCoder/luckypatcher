@@ -37,6 +37,7 @@ async def render_page(id, secure_hash, page_type,):
         logging.debug(f'link hash: {secure_hash} - {file_data.unique_id[:6]}')
         logging.debug(f"Invalid hash for message with - ID {id}")
         raise InvalidHash
+    
     lazydevelopersrc = urllib.parse.urljoin(URL, f'{secure_hash}{str(id)}')
     if str(file_data.mime_type.split('/')[0].strip()) == 'video':
         if page_type=="req":

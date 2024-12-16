@@ -24,7 +24,6 @@ from util.time_format import get_readable_time
 from util.render_template import render_page, render_lazydeveloper
 from config import *
 from util.file_properties import get_file_ids
-from plugins.channel_post import validate_hash
 
 routes = web.RouteTableDef()
 
@@ -91,43 +90,43 @@ async def embed_handler(request: web.Request):
         raise web.HTTPInternalServerError(text=str(e))
 
 
-@routes.get(r"/play/{path:\S+}", allow_head=True)
-async def play_handler(request: web.Request):
-    """
-    Serve the play page for the provided stream or video URL.
-    """
-    try:
-        path = request.match_info["path"]
+# @routes.get(r"/play/{path:\S+}", allow_head=True)
+# async def play_handler(request: web.Request):
+#     """
+#     Serve the play page for the provided stream or video URL.
+#     """
+#     try:
+#         path = request.match_info["path"]
 
-        # Extract hash and ID from the path
-        match = re.search(r"^([a-zA-Z0-9_-]{6})(\d+)$", path)
-        if match:
-            secure_hash = match.group(1)
-            id = int(match.group(2))
-        else:
-            id = int(re.search(r"(\d+)(?:\/\S+)?", path).group(1))
-            secure_hash = request.rel_url.query.get("hash")
+#         # Extract hash and ID from the path
+#         match = re.search(r"^([a-zA-Z0-9_-]{6})(\d+)$", path)
+#         if match:
+#             secure_hash = match.group(1)
+#             id = int(match.group(2))
+#         else:
+#             id = int(re.search(r"(\d+)(?:\/\S+)?", path).group(1))
+#             secure_hash = request.rel_url.query.get("hash")
 
-        # Validate the hash (ensure it matches the log_msg_id)
-        if not validate_hash(id, secure_hash):
-            raise web.HTTPForbidden(text="❌ Invalid or expired link.")
+#         # Validate the hash (ensure it matches the log_msg_id)
+#         if not validate_hash(id, secure_hash):
+#             raise web.HTTPForbidden(text="❌ Invalid or expired link.")
 
-        # Retrieve the URL from the stream logs
-        log_message = await lazydeveloperxbot.get_messages(int(STREAM_LOGS), message_ids=[id])
+#         # Retrieve the URL from the stream logs
+#         log_message = await lazydeveloperxbot.get_messages(int(STREAM_LOGS), message_ids=[id])
+        
+#         if not log_message or not log_message.text.startswith("http"):
+#             raise web.HTTPNotFound(text="❌ URL not found or invalid.")
 
-        if not log_message or not log_message.text.startswith("http"):
-            raise web.HTTPNotFound(text="❌ URL not found or invalid.")
+#         # Render the play.html with the retrieved URL
+#         video_url = log_message.text.strip()
+#         return web.Response(
+#             text=await render_lazydeveloper(video_url),
+#             content_type="text/html"
+#         )
 
-        # Render the play.html with the retrieved URL
-        video_url = log_message.text.strip()
-        return web.Response(
-            text=await render_lazydeveloper(video_url),
-            content_type="text/html"
-        )
-
-    except Exception as e:
-        logging.critical(e, exc_info=True)
-        raise web.HTTPInternalServerError(text=f"❌ An error occurred: {str(e)}")
+#     except Exception as e:
+#         logging.critical(e, exc_info=True)
+#         raise web.HTTPInternalServerError(text=f"❌ An error occurred: {str(e)}")
 
 
 @routes.get(r"/{path:\S+}", allow_head=True)
@@ -151,7 +150,42 @@ async def stream_handler(request: web.Request):
     except Exception as e:
         logging.critical(e.with_traceback(None))
         raise web.HTTPInternalServerError(text=str(e))
-    
+
+
+@routes.get(r"/play/{unique_id}/{message_id}", allow_head=True)
+async def play_handler(request: web.Request):
+    """
+    Validate the unique_id and serve the play page for the video URL.
+    """
+    try:
+        # Extract unique_id and message_id from the URL
+        unique_id = request.match_info["unique_id"]
+        message_id = int(request.match_info["message_id"])
+
+        # Retrieve the log message from the Stream Logs
+        log_message = await lazydeveloperxbot.get_messages(STREAM_LOGS, message_ids=[message_id])
+
+        # Check if the unique_id exists in the log message
+        if not log_message or unique_id not in log_message.text:
+            raise web.HTTPForbidden(text="❌ Invalid or expired link. Unique ID not found.")
+
+        # Extract the URL from the log message
+        lines = log_message.text.split("\n")
+        target_url = lines[0].strip()  # the URL is the first line
+
+        if not target_url.startswith("http"):
+            raise web.HTTPNotFound(text="❌ URL not found or invalid.")
+
+        # Render the play.html with the retrieved URL
+        return web.Response(
+            text=await render_lazydeveloper(target_url),
+            content_type="text/html"
+        )
+
+    except Exception as e:
+        logging.critical(e, exc_info=True)
+        raise web.HTTPInternalServerError(text=f"❌ An error occurred: {str(e)}")
+
 # @routes.get(r"/play/{path:\S+}", allow_head=True)
 # async def play_handler(request: web.Request):
 #     """

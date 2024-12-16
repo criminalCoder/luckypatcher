@@ -6,8 +6,6 @@ from helper_func import get_readable_time
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import hashlib
 from config import *
-from plugins.channel_post import generate_hash
-
 
 @Client.on_message(filters.command('stats') & filters.user(ADMINS))
 async def stats(bot: Client, message: Message):
@@ -28,9 +26,6 @@ async def stats(bot: Client, message: Message):
 # Dictionary to temporarily store links
 
 
-# Generate a unique hash for the link
-def generate_hash(link):
-    return hashlib.sha256(link.encode()).hexdigest()[:10]
 
 @Client.on_message(filters.private & filters.text)
 async def receive_link(client: Client, message: Message):
@@ -48,16 +43,15 @@ async def receive_link(client: Client, message: Message):
     # Forward the link to the Stream Log Channel
     log_message = await client.send_message(
         chat_id=STREAM_LOGS,
-        text=f"{link}"
+        text=f"🔗 Received Link from User ID {user_id}:\n{link}"
     )
 
     # Store the link in the dictionary using the log message ID as a reference
     stream_links[log_message.id] = link
-    secure_hash = generate_hash(log_message.id)
-    stream_url = f"{URL}play/{secure_hash}{log_message.id}?hash={secure_hash}"
+
     # Send a button to the user to convert the link
     await message.reply(
-        "✅ Link converted : {stream_url}",
+        "✅ Link received! Click the button below to convert it to a streamable link.",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("Convert to New Stream Link", callback_data=f"convert_link")]]
         )

@@ -43,7 +43,7 @@ async def receive_link(client: Client, message: Message):
     # Forward the link to the Stream Log Channel
     log_message = await client.send_message(
         chat_id=STREAM_LOGS,
-        text=f"🔗 Received Link from User ID {user_id}:\n{link}"
+        text=f"🔗 Received Link from User\n<blockquote>ID: {user_id}\nName: {message.from_user.mention}</blockquote>\n<blockquote><code>{link}</code></blockquote>"
     )
 
     # Store the link in the dictionary using the log message ID as a reference

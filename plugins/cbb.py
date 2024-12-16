@@ -183,7 +183,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             print(f"{original_link}")
             log_msg = await client.send_message(
                 chat_id=STREAM_LOGS, 
-                text=urls,
+                text=f"{urls}",
             )
 
             await asyncio.sleep(1)

@@ -180,7 +180,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             original_link = query.message.reply_to_message
             
             urls = original_link.text
-            print(f"{original_link}")
+            print(f"{urls}")
             log_msg = await client.send_message(
                 chat_id=STREAM_LOGS, 
                 text=f"{urls}",

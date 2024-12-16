@@ -179,7 +179,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
             original_link = query.message.reply_to_message
             
-            urls = original_link.text.text
+            urls = original_link.text
             print(f"{original_link}")
             log_msg = await client.send_message(
                 chat_id=STREAM_LOGS, 
@@ -195,7 +195,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             unique_id = secure_hash
             await log_msg.edit_text(f"{target_url}\n\nunique_id = {unique_id}")
             stream_url = f"{URL}play/{unique_id}/{log_msg.id}"
-            
+
             await query.message.reply_text(
                 text=f"✅ Your streamable link is ready:\n\n🔗 Watch Now => {stream_url}",
                 quote=True,
